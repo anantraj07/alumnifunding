@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎉 Alumni Fund 🎓</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <!-- Header Section -->
+    <header class="bg-gradient-to-r from-green-900 to-green-800 text-white py-12 px-4 shadow-xl">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <div class="text-center md:text-left mb-4 md:mb-0">
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 animate__animated animate__fadeIn">🎉 Alumni Fund 🎓</h1>
+                <p class="text-xl text-green-200">Supporting our community and future generations.</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Section -->
+    <main class="container mx-auto py-12 px-4">
+        <!-- Purpose Section -->
+        <section class="max-w-2xl mx-auto bg-white p-6 rounded-lg border border-green-200 mb-8 animate__animated animate__fadeIn">
+            <h2 class="text-2xl font-bold text-green-800 mb-4 text-center">Purpose of the Alumni Fund</h2>
+            <p class="text-gray-700 mb-4">
+                The Alumni Fund is dedicated to supporting current students, funding scholarships, and enhancing educational resources. Your contributions will help us create a lasting impact on our community and ensure that future generations have the support they need to succeed.
+            </p>
+            <p class="text-gray-700">
+                Join us in making a difference! Every donation, no matter how small, helps us achieve our goals.
+            </p>
+        </section>
+
+        <!-- Donation Section -->
+        <section class="max-w-md mx-auto bg-green-50 p-6 rounded-lg border border-green-200 mb-8 animate__animated animate__fadeIn">
+            <h2 class="text-xl font-bold text-green-800 mb-4 text-center">Make a Donation</h2>
+            <form id="donationForm">
+                <input type="text" id="donorName" placeholder="Your Name" class="w-full mb-3 p-2 border rounded" required>
+                <input type="email" id="donorEmail" placeholder="Your Email" class="w-full mb-3 p-2 border rounded" required>
+                <input type="number" id="donationAmount" placeholder="Donation Amount" class="w-full mb-3 p-2 border rounded" required>
+                <button type="button" id="razorpay-button" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded transition duration-300">
+                    Donate via Razorpay 💳
+                </button>
+            </form>
+            <div class="mt-4 text-center">
+                <p class="text-gray-600">Or donate via:</p>
+                <!-- PayPal Donation Button -->
+                <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_blank" class="mt-2">
+                    <input type="hidden" name="cmd" value="_donations">
+                    <input type="hidden" name="business" value="your-paypal-email@example.com">
+                    <input type="hidden" name="item_name" value="Alumni Fund Donation">
+                    <input type="hidden" name="currency_code" value="USD">
+                    <input type="hidden" name="amount" id="paypalAmount" value="">
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded transition duration-300">
+                        Donate via PayPal
+                    </button>
+                </form>
+
+                <!-- Bank Transfer Option -->
+                <div class="mt-4 text-left">
+                    <h3 class="font-semibold">Bank Transfer:</h3>
+                    <p class="text-gray-600">Account Name: Alumni Fund</p>
+                    <p class="text-gray-600">Account Number: 123456789</p>
+                    <p class="text-gray-600">Bank: Example Bank</p>
+                    <p class="text-gray-600">IFSC Code: EXAMP1234</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto text-center">
+            <p class="text-blue-300">© 2025 Alumni Fund | Together We Can Make a Difference</p>
+        </div>
+    </footer>
+
+    <script>
+        // Handle Razorpay donation
+        document.getElementById('razorpay-button').onclick = function(e) {
+            e.preventDefault();
+            const amount = document.getElementById('donationAmount').value;
+
+            // Create a Razorpay order
+            fetch('/create-razorpay-order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ amount: amount * 100 }) // Amount in paise
+            })
+            .then(response => response.json())
+            .then(data => {
+                const options = {
+                    key: 'your-razorpay-key-id', // Enter the Key ID generated from the Razorpay Dashboard
+                    amount: data.amount, // Amount is in currency subunits. Default currency is INR. Hence, 100 = INR 1
+                    currency: data.currency,
+                    name: 'Alumni Fund',
+                    description: 'Donation for Alumni Fund',
+                    order_id: data.id, // Pass the order ID returned from the server
+                    handler: function (response) {
+                        alert(`Thank you for your donation of ₹${amount}!`);
+                        // Optionally, you can send the response to your server for verification
+                    },
+                    prefill: {
+                        name: document.getElementById('donorName').value,
+                        email: document.getElementById('donorEmail').value
+                    },
+                    theme: {
+                        color: '#F37254'
+                    }
+                };
+                const rzp = new Razorpay(options);
+                rzp.open();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while creating the payment. Please try again.');
+            });
+        };
+
+        // Handle donation form submission for PayPal
+        document.getElementById('donationForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const amount = document.getElementById('donationAmount').value;
+            document.getElementById('paypalAmount').value = amount; // Set PayPal amount
+            alert(`Thank you for your donation of $${amount}!`);
+            this.reset(); // Reset the form
+        });
+    </script>
+</body>
+</html>
